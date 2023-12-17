@@ -20,6 +20,7 @@ from database.database import add_user, del_user, full_userbase, present_user
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
+    sent_messages = []
     id = message.from_user.id
     if not await present_user(id):
         try:
@@ -76,16 +77,21 @@ async def start_command(client: Client, message: Message):
             try:
                 k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
                 await asyncio.sleep(0.5)
+                sent_messages.append(k)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
                 k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-    
-        # Sleep outside the loop to wait for 15 seconds
+                sent_messages.append(k)
+ # Sleep for 15 seconds before deleting
         await asyncio.sleep(15)
     
-        # Delete the sent messages
-        for k!=0:
-            await k.delete()
+        # Delete the sent messages in a loop
+        for sent_msg in sent_messages:
+            try:
+                await sent_msg.delete()
+            except Exception as e:
+                # Handle deletion errors, if any
+                print(f"Error deleting message: {e}")
     else:
         reply_markup = InlineKeyboardMarkup(
             [
