@@ -84,7 +84,8 @@ async def start_command(client: Client, message: Message):
         await asyncio.sleep(15)
     
         # Delete the sent messages
-        await k.delete()
+        for k!=0:
+            await k.delete()
     else:
         reply_markup = InlineKeyboardMarkup(
             [
