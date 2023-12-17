@@ -63,30 +63,29 @@ async def start_command(client: Client, message: Message):
             return
         await temp_msg.delete()
         p=[];
-        for msg in messages:
-            if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
-            else:
-                caption = "" if not msg.caption else msg.caption.html
+async def send_and_delete_messages(messages, message):
+    for msg in messages:
+        if bool(CUSTOM_CAPTION) and bool(msg.document):
+            caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
+        else:
+            caption = "" if not msg.caption else msg.caption.html
 
-            if DISABLE_CHANNEL_BUTTON:
-                reply_markup = msg.reply_markup
-            else:
-                reply_markup = None
+        if DISABLE_CHANNEL_BUTTON:
+            reply_markup = msg.reply_markup
+        else:
+            reply_markup = None
 
-            try:
-                k= await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
-                await asyncio.sleep(0.5)
-                p=append.k
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-                g= await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)            
-            except:
-                pass
-        return
-        for p!=0:
-            await asyncio.sleep(15)
-            await p.delete()
+        try:
+            k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+        except FloodWait as e:
+            await asyncio.sleep(e.x)
+            k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+
+    # Sleep outside the loop to wait for 15 seconds
+    await asyncio.sleep(15)
+
+    # Delete the sent messages
+    await k.delete()
     else:
         reply_markup = InlineKeyboardMarkup(
             [
