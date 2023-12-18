@@ -1,24 +1,16 @@
 #(©)CodeXBotz
 
-
-
-
 import os
 import asyncio
 from pyrogram import Client, filters, __version__
 from pyrogram.enums import ParseMode
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
-
-
-
-
-# ... (your existing code)
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
@@ -28,6 +20,29 @@ async def start_command(client: Client, message: Message):
             await add_user(id)
         except:
             pass
+
+    # Send the introduction message
+    reply_markup = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("😊 About Me", callback_data="about"),
+                InlineKeyboardButton("🔒 Close", callback_data="close")
+            ]
+        ]
+    )
+    intro_msg = await message.reply_text(
+        text=START_MSG.format(
+            first=message.from_user.first_name,
+            last=message.from_user.last_name,
+            username=None if not message.from_user.username else '@' + message.from_user.username,
+            mention=message.from_user.mention,
+            id=message.from_user.id
+        ),
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+        quote=True
+    )
+
     text = message.text
     if len(text) > 7:
         try:
@@ -57,6 +72,7 @@ async def start_command(client: Client, message: Message):
                 ids = [int(int(argument[1]) / abs(client.db_channel.id))]
             except:
                 return
+
         temp_msg = await message.reply("Please wait...")
 
         try:
@@ -65,88 +81,53 @@ async def start_command(client: Client, message: Message):
             await message.reply_text("Something went wrong..!")
             return
 
-        # Send the introduction message
-        reply_markup = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("😊 About Me", callback_data="about"),
-                    InlineKeyboardButton("🔒 Close", callback_data="close")
-                ]
-            ]
-        )
-        await message.reply_text(
-            text=START_MSG.format(
-                first=message.from_user.first_name,
-                last=message.from_user.last_name,
-                username=None if not message.from_user.username else '@' + message.from_user.username,
-                mention=message.from_user.mention,
-                id=message.from_user.id
-            ),
-            reply_markup=reply_markup,
-            disable_web_page_preview=True,
-            quote=True
-        )
+        # Combine all file links into one message
+        file_links = []
+        for msg in messages:
+            if msg.document:
+                caption = get_caption(msg)
+                reply_markup = get_reply_markup(msg)
+
+                try:
+                    k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                                       reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    file_links.append(f"• {k.link}")
+                except FloodWait as e:
+                    await asyncio.sleep(e.x)
+                    k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                                       reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    file_links.append(f"• {k.link}")
+
+        # Send the combined file links
+        if file_links:
+            combined_links_msg = await message.reply_text("\n".join(file_links))
 
         await temp_msg.delete()
 
-        # Send and delete each file after 15 seconds
+        # Sleep for 15 seconds before deleting the intro message and the combined file links
+        await asyncio.sleep(15)
+
+        # Delete the intro message and the combined file links
+        try:
+            await intro_msg.delete()
+        except Exception as e:
+            print(f"Error deleting intro message: {e}")
+
+        if file_links:
+            try:
+                await combined_links_msg.delete()
+            except Exception as e:
+                print(f"Error deleting combined links message: {e}")
+
+        # Delete the files after 15 seconds
         for msg in messages:
-            if msg.document:
-                await send_and_delete_document(msg, message)
-            else:
-                await send_and_delete_text(msg, message)
+            try:
+                await msg.delete()
+            except Exception as e:
+                # Handle deletion errors, if any
+                print(f"Error deleting message: {e}")
 
 
-async def send_and_delete_document(msg, message):
-    caption = get_caption(msg)
-    reply_markup = get_reply_markup(msg)
-
-    try:
-        k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
-                           reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-        await asyncio.sleep(15)
-        await k.delete()
-    except FloodWait as e:
-        await asyncio.sleep(e.x)
-        k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
-                           reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-        await asyncio.sleep(15)
-        await k.delete()
-
-
-async def send_and_delete_text(msg, message):
-    reply_markup = get_reply_markup(msg)
-
-    try:
-        k = await msg.copy(chat_id=message.from_user.id, parse_mode=ParseMode.HTML,
-                           reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-        await asyncio.sleep(15)
-        await k.delete()
-    except FloodWait as e:
-        await asyncio.sleep(e.x)
-        k = await msg.copy(chat_id=message.from_user.id, parse_mode=ParseMode.HTML,
-                           reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-        await asyncio.sleep(15)
-        await k.delete()
-
-
-def get_caption(msg):
-    if bool(CUSTOM_CAPTION) and bool(msg.document):
-        return CUSTOM_CAPTION.format(
-            previouscaption="" if not msg.caption else msg.caption.html,
-            filename=msg.document.file_name)
-    else:
-        return "" if not msg.caption else msg.caption.html
-
-
-def get_reply_markup(msg):
-    return msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
-
-# ... (your existing code)
-
-
-
-    
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
