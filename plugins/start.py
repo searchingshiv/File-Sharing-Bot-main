@@ -84,17 +84,15 @@ async def start_command(client: Client, message: Message):
                 k= await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
             except:
                 pass
-        await asyncio.sleep(15)
         return
         delay_seconds=15
-        async def delete_message_after_delay(chat_id, message_id, delay_seconds):
-            await asyncio.sleep(delay_seconds)
-            try:
-                await bot.delete_message(chat_id=chat_id, message_id=message_id)
-            except MessageToDeleteNotFound:
-                print("Message to delete not found.")
-            except Exception as e:
-                print(f"An error occurred while deleting message: {e}")
+        await asyncio.sleep(delay_seconds)
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=message_id)
+        except MessageToDeleteNotFound:
+            print("Message to delete not found.")
+        except Exception as e:
+            print(f"An error occurred while deleting message: {e}")
     else:
         reply_markup = InlineKeyboardMarkup(
             [
