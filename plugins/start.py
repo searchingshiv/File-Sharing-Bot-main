@@ -114,7 +114,7 @@ async def delete_message_after_delay(message_id, delay_seconds):
         await bot.delete_message(chat_id=message.from_user.id, message_id=message_id)
     except Exception as e:
         print(f"An error occurred while deleting message: {e}")
-asyncio.run(forward_and_delete_messages(messages_to_forward))
+
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
