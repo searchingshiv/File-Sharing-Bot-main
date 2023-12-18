@@ -19,7 +19,38 @@ from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 from helper_func import str_to_b64
 
+async def reply_forward(message: Message, file_id: int):
+    try:
+        await message.reply_text(
+            f"Files will be deleted in 30 minutes to avoid copyright issues. Please forward and save them.",
+            disable_web_page_preview=True,
+            quote=True
+        )
+    except FloodWait as e:
+        await asyncio.sleep(e.x)
+        await reply_forward(message, file_id)
 
+async def media_forward(bot: Client, user_id: int, file_id: int):
+    try:
+        if Config.FORWARD_AS_COPY is True:
+            return await bot.copy_message(chat_id=user_id, from_chat_id=Config.CHANNEL_ID,
+                                          message_id=file_id)
+        elif Config.FORWARD_AS_COPY is False:
+            return await bot.forward_messages(chat_id=user_id, from_chat_id=Config.CHANNEL_ID,
+                                              message_ids=file_id)
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
+        return media_forward(bot, user_id, file_id)
+        await message.delete()
+
+async def send_media_and_reply(bot: Client, user_id: int, file_id: int):
+    sent_message = await media_forward(bot, user_id, file_id)
+    await reply_forward(message=sent_message, file_id=file_id)
+    asyncio.create_task(delete_after_delay(sent_message, 1800))
+
+async def delete_after_delay(message, delay):
+    await asyncio.sleep(delay)
+    await message.delete() 
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
@@ -88,38 +119,7 @@ async def start_command(client: Client, message: Message):
             quote = True
         )
         return
-async def reply_forward(message: Message, file_id: int):
-    try:
-        await message.reply_text(
-            f"Files will be deleted in 30 minutes to avoid copyright issues. Please forward and save them.",
-            disable_web_page_preview=True,
-            quote=True
-        )
-    except FloodWait as e:
-        await asyncio.sleep(e.x)
-        await reply_forward(message, file_id)
-
-async def media_forward(bot: Client, user_id: int, file_id: int):
-    try:
-        if Config.FORWARD_AS_COPY is True:
-            return await bot.copy_message(chat_id=user_id, from_chat_id=Config.CHANNEL_ID,
-                                          message_id=file_id)
-        elif Config.FORWARD_AS_COPY is False:
-            return await bot.forward_messages(chat_id=user_id, from_chat_id=Config.CHANNEL_ID,
-                                              message_ids=file_id)
-    except FloodWait as e:
-        await asyncio.sleep(e.value)
-        return media_forward(bot, user_id, file_id)
-        await message.delete()
-
-async def send_media_and_reply(bot: Client, user_id: int, file_id: int):
-    sent_message = await media_forward(bot, user_id, file_id)
-    await reply_forward(message=sent_message, file_id=file_id)
-    asyncio.create_task(delete_after_delay(sent_message, 1800))
-
-async def delete_after_delay(message, delay):
-    await asyncio.sleep(delay)
-    await message.delete()   
+  
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
