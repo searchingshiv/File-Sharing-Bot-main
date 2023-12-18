@@ -120,7 +120,17 @@ async def start_command(client: Client, message: Message):
             quote = True
         )
         return
+async def handle_forwarded_video(client: Client, message: Message):
+    try:
+        # Process the forwarded video here
 
+        # Wait for 15 seconds
+        await asyncio.sleep(15)
+
+        # Delete the forwarded message after 15 seconds
+        await message.delete()
+    except Exception as e:
+        print(f"An error occurred while handling forwarded video: {e}")
     
 #=====================================================================================##
 
