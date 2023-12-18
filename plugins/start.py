@@ -25,10 +25,10 @@ async def send_and_delete_text(msg, message, sent_messages):
         disable_web_page_preview=True
     )
 
-    if hasattr(message, "message_id"):
-        sent_messages.append(message.message_id)
+    if hasattr(message, "forward_from_message_id"):
+        sent_messages.append(message.forward_from_message_id)
     else:
-        print(f"Warning: The message object does not have a message_id attribute: {message}")
+        print(f"Warning: The message object does not have a forward_from_message_id attribute: {message}")
 
 
     # Schedule the deletion after 15 seconds
