@@ -5,9 +5,6 @@
 
 import os
 import asyncio
-import requests
-import string
-import random
 from pyrogram import Client, filters, __version__
 from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
@@ -17,44 +14,12 @@ from bot import Bot
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
-from helper_func import str_to_b64
 
-async def reply_forward(message: Message, file_id: int):
-    try:
-        await message.reply_text(
-            f"Files will be deleted in 30 minutes to avoid copyright issues. Please forward and save them.",
-            disable_web_page_preview=True,
-            quote=True
-        )
-    except FloodWait as e:
-        await asyncio.sleep(e.x)
-        await reply_forward(message, file_id)
 
-async def media_forward(bot: Client, user_id: int, file_id: int):
-    try:
-        if Config.FORWARD_AS_COPY is True:
-            return await bot.copy_message(chat_id=user_id, from_chat_id=Config.CHANNEL_ID,
-                                          message_id=file_id)
-        elif Config.FORWARD_AS_COPY is False:
-            return await bot.forward_messages(chat_id=user_id, from_chat_id=Config.CHANNEL_ID,
-                                              message_ids=file_id)
-    except FloodWait as e:
-        await asyncio.sleep(e.value)
-        return media_forward(bot, user_id, file_id)
-        await message.delete()
 
-async def send_media_and_reply(bot: Client, user_id: int, file_id: int):
-    sent_message = await media_forward(bot, user_id, file_id)
-    await reply_forward(message=sent_message, file_id=file_id)
-    asyncio.create_task(delete_after_delay(sent_message, 60))
-
-async def delete_after_delay(message, delay):
-    await asyncio.sleep(delay)
-    await message.delete() 
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
-    sent_messages = []
     id = message.from_user.id
     if not await present_user(id):
         try:
@@ -71,8 +36,8 @@ async def start_command(client: Client, message: Message):
         argument = string.split("-")
         if len(argument) == 3:
             try:
-                start = int(int(argument[1]) / abs(client.CHANNEL_ID.id))
-                end = int(int(argument[2]) / abs(client.CHANNEL_ID.id))
+                start = int(int(argument[1]) / abs(client.db_channel.id))
+                end = int(int(argument[2]) / abs(client.db_channel.id))
             except:
                 return
             if start <= end:
@@ -87,7 +52,7 @@ async def start_command(client: Client, message: Message):
                         break
         elif len(argument) == 2:
             try:
-                ids = [int(int(argument[1]) / abs(client.CHANNEL_ID.id))]
+                ids = [int(int(argument[1]) / abs(client.db_channel.id))]
             except:
                 return
         temp_msg = await message.reply("Please wait...")
@@ -97,24 +62,33 @@ async def start_command(client: Client, message: Message):
             await message.reply_text("Something went wrong..!")
             return
         await temp_msg.delete()
-#=====================================================================================##
 
-        file_id = int(usr_cmd.split("_")[-1])
-        GetMessage = await bot.get_messages(chat_id=Config.CHANNEL_ID, message_ids=file_id)
-        message_ids = []
-        if GetMessage.text:
-            message_ids = GetMessage.text.split(" ")
-            _response_msg = await cmd.reply_text(
-                text=f"**Total Files:** `{len(message_ids)}`",
-                quote=True,
-                disable_web_page_preview=True
-            )
-        else:
-            message_ids.append(int(GetMessage.id))
-        for i in range(len(message_ids)):
-            await send_media_and_reply(bot, user_id=cmd.from_user.id, file_id=int(message_ids[i]))
+        for msg in messages:
 
-#=====================================================================================##
+            if bool(CUSTOM_CAPTION) & bool(msg.document):
+                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
+            else:
+                caption = "" if not msg.caption else msg.caption.html
+
+            if DISABLE_CHANNEL_BUTTON:
+                reply_markup = msg.reply_markup
+            else:
+                reply_markup = None
+
+            try:
+                k=await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+                await asyncio.sleep(0.5)
+            except FloodWait as e:
+                await asyncio.sleep(e.x)
+                k=await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+            except:
+                pass
+        return
+        delay=60
+        async def delete_after_delay(k, delay):
+        await asyncio.sleep(delay)
+        await message.delete()
+        await delete_after_delay(k, delay)
     else:
         reply_markup = InlineKeyboardMarkup(
             [
@@ -137,7 +111,8 @@ async def start_command(client: Client, message: Message):
             quote = True
         )
         return
-  
+
+    
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
@@ -162,7 +137,7 @@ async def not_joined(client: Client, message: Message):
             [
                 InlineKeyboardButton(
                     text = 'Try Again',
-                    url = f"https://telegram.me/{client.username}?start={message.command[1]}"
+                    url = f"https://t.me/{client.username}?start={message.command[1]}"
                 )
             ]
         )
