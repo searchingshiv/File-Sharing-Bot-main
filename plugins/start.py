@@ -18,6 +18,29 @@ from database.database import add_user, del_user, full_userbase, present_user
 
 
 
+async def send_and_delete_text(msg, message, sent_messages):
+    sent_message = await message.reply_text(
+        text=msg,
+        quote=True,
+        disable_web_page_preview=True
+    )
+
+    sent_messages.append(sent_message.message_id)
+
+    # Schedule the deletion after 15 seconds
+    await asyncio.sleep(15)
+
+    # Delete the sent messages
+    for msg_id in sent_messages:
+        try:
+            await message.chat.delete_messages(msg_id)
+        except:
+            pass
+
+    # Clear the list of sent messages
+    sent_messages.clear()
+
+
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     id = message.from_user.id
@@ -64,10 +87,10 @@ async def start_command(client: Client, message: Message):
         await temp_msg.delete()
 
         for msg in messages:
-
             if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html,
-                                                filename=msg.document.file_name)
+                caption = CUSTOM_CAPTION.format(
+                    previouscaption="" if not msg.caption else msg.caption.html,
+                    filename=msg.document.file_name)
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
@@ -86,7 +109,10 @@ async def start_command(client: Client, message: Message):
                                 reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
             except:
                 pass
-        return
+
+        # Use the updated send_and_delete_text function
+        await send_and_delete_text(msg, message, sent_messages)
+
     else:
         reply_markup = InlineKeyboardMarkup(
             [
@@ -108,9 +134,9 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview=True,
             quote=True
         )
-        return
 
-# Existing code...
+# Rest of your code...
+
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
