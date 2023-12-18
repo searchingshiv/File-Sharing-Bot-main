@@ -37,8 +37,8 @@ async def start_command(client: Client, message: Message):
         argument = string.split("-")
         if len(argument) == 3:
             try:
-                start = int(int(argument[1]) / abs(client.db_channel.id))
-                end = int(int(argument[2]) / abs(client.db_channel.id))
+                start = int(int(argument[1]) / abs(client.CHANNEL_ID.id))
+                end = int(int(argument[2]) / abs(client.CHANNEL_ID.id))
             except:
                 return
             if start <= end:
@@ -53,7 +53,7 @@ async def start_command(client: Client, message: Message):
                         break
         elif len(argument) == 2:
             try:
-                ids = [int(int(argument[1]) / abs(client.db_channel.id))]
+                ids = [int(int(argument[1]) / abs(client.CHANNEL_ID.id))]
             except:
                 return
         temp_msg = await message.reply("Please wait...")
@@ -63,29 +63,6 @@ async def start_command(client: Client, message: Message):
             await message.reply_text("Something went wrong..!")
             return
         await temp_msg.delete()
-        for msg in messages:
-            if bool(CUSTOM_CAPTION) and bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
-            else:
-                caption = "" if not msg.caption else msg.caption.html
-    
-            if DISABLE_CHANNEL_BUTTON:
-                reply_markup = msg.reply_markup
-            else:
-                reply_markup = None
-    
-            try:
-                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                await asyncio.sleep(0.5)
-                sent_messages.append(k)
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                sent_messages.append(k)
-                
-        warn_msg = await message.reply("<b> File will be deleted in 4 hours \n \n \n 🤖 Jo bhi file bot pe aaya hai, Sare file ko kahi pe Forward kar ke rkh lo Kyuki Bot se 4 Hours me File Automatic Delete ho jayega 😎 </b>")
- # Sleep for 14400 seconds before deleting
-
     else:
         reply_markup = InlineKeyboardMarkup(
             [
@@ -108,16 +85,38 @@ async def start_command(client: Client, message: Message):
             quote = True
         )
         return
-    await asyncio.sleep(14400)
-    await warn_msg.delete()
-    # Delete the sent messages in a loop
-    for sent_msg in sent_messages:
-        try:
-            await sent_msg.delete()
-        except Exception as e:
-            # Handle deletion errors, if any
-            print(f"Error deleting message: {e}")
-    
+async def reply_forward(message: Message, file_id: int):
+    try:
+        await message.reply_text(
+            f"Files will be deleted in 30 minutes to avoid copyright issues. Please forward and save them.",
+            disable_web_page_preview=True,
+            quote=True
+        )
+    except FloodWait as e:
+        await asyncio.sleep(e.x)
+        await reply_forward(message, file_id)
+
+async def media_forward(bot: Client, user_id: int, file_id: int):
+    try:
+        if Config.FORWARD_AS_COPY is True:
+            return await bot.copy_message(chat_id=user_id, from_chat_id=Config.CHANNEL_ID,
+                                          message_id=file_id)
+        elif Config.FORWARD_AS_COPY is False:
+            return await bot.forward_messages(chat_id=user_id, from_chat_id=Config.CHANNEL_ID,
+                                              message_ids=file_id)
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
+        return media_forward(bot, user_id, file_id)
+        await message.delete()
+
+async def send_media_and_reply(bot: Client, user_id: int, file_id: int):
+    sent_message = await media_forward(bot, user_id, file_id)
+    await reply_forward(message=sent_message, file_id=file_id)
+    asyncio.create_task(delete_after_delay(sent_message, 1800))
+
+async def delete_after_delay(message, delay):
+    await asyncio.sleep(delay)
+    await message.delete()   
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
