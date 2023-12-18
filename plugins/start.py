@@ -25,7 +25,11 @@ async def send_and_delete_text(msg, message, sent_messages):
         disable_web_page_preview=True
     )
 
-    sent_messages.append(message.message_id)  # Change this line
+    if hasattr(message, "message_id"):
+    sent_messages.append(message.message_id)
+    else:
+    print(f"Warning: The message object does not have a message_id attribute: {message}")
+
 
     # Schedule the deletion after 15 seconds
     await asyncio.sleep(15)
