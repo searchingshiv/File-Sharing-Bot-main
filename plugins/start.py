@@ -87,7 +87,7 @@ async def start_command(client: Client, message: Message):
         delay=60
         async def delete_after_delay(k, delay):
             await asyncio.sleep(delay)
-            await message.delete()
+            await k.delete()
         await delete_after_delay(k, delay)
     else:
         reply_markup = InlineKeyboardMarkup(
