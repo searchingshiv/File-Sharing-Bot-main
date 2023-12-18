@@ -24,9 +24,10 @@ async def handle_forwarded_video(client: Client, message: Message):
         await asyncio.sleep(15)
 
         # Delete the forwarded message after 15 seconds
-        await client.delete_messages(chat_id=message.chat.id, message_ids=message.message_id)
+        await message.delete()
     except Exception as e:
         print(f"An error occurred while handling forwarded video: {e}")
+
 
 
 
