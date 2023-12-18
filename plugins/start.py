@@ -85,17 +85,7 @@ async def start_command(client: Client, message: Message):
                 
         warn_msg = await message.reply("<b> File will be deleted in 4 hours \n \n \n 🤖 Jo bhi file bot pe aaya hai, Sare file ko kahi pe Forward kar ke rkh lo Kyuki Bot se 4 Hours me File Automatic Delete ho jayega 😎 </b>")
  # Sleep for 15 seconds before deleting
-        await asyncio.sleep(15)
-        await warn_msg.delete()
-        # Delete the sent messages in a loop
-        delay_seconds=15
-        async def delete_message_after_delay(sent_messages, message_id, delay_seconds):
-            for sent_msg in sent_messages:
-                try:
-                    await sent_msg.delete()
-                except Exception as e:
-                    # Handle deletion errors, if any
-                    print(f"Error deleting message: {e}")
+
     else:
         reply_markup = InlineKeyboardMarkup(
             [
@@ -118,7 +108,15 @@ async def start_command(client: Client, message: Message):
             quote = True
         )
         return
-
+    await asyncio.sleep(15)
+    await warn_msg.delete()
+    # Delete the sent messages in a loop
+    for sent_msg in sent_messages:
+        try:
+            await sent_msg.delete()
+        except Exception as e:
+            # Handle deletion errors, if any
+            print(f"Error deleting message: {e}")
     
 #=====================================================================================##
 
