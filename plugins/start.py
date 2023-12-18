@@ -25,7 +25,7 @@ async def send_and_delete_text(msg, message, sent_messages):
         disable_web_page_preview=True
     )
 
-    sent_messages.append(sent_message.message_id)
+    sent_messages.append(message.message_id)  # Change this line
 
     # Schedule the deletion after 15 seconds
     await asyncio.sleep(15)
@@ -39,6 +39,7 @@ async def send_and_delete_text(msg, message, sent_messages):
 
     # Clear the list of sent messages
     sent_messages.clear()
+
 
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
