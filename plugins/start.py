@@ -18,10 +18,9 @@ from database.database import add_user, del_user, full_userbase, present_user
 
 
 
-
-
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
+    sent_messages = []
     id = message.from_user.id
     if not await present_user(id):
         try:
@@ -65,34 +64,38 @@ async def start_command(client: Client, message: Message):
             return
         await temp_msg.delete()
         for msg in messages:
-
-            if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
+            if bool(CUSTOM_CAPTION) and bool(msg.document):
+                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
             else:
                 caption = "" if not msg.caption else msg.caption.html
-
+    
             if DISABLE_CHANNEL_BUTTON:
                 reply_markup = msg.reply_markup
             else:
                 reply_markup = None
-
+    
             try:
-                k= await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
                 await asyncio.sleep(0.5)
+                sent_messages.append(k)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                k= await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
-            except:
-                pass
-        return
+                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                sent_messages.append(k)
+                
+        warn_msg = await message.reply("<b> File will be deleted in 4 hours \n \n \n 🤖 Jo bhi file bot pe aaya hai, Sare file ko kahi pe Forward kar ke rkh lo Kyuki Bot se 4 Hours me File Automatic Delete ho jayega 😎 </b>")
+ # Sleep for 15 seconds before deleting
+        await asyncio.sleep(15)
+        await warn_msg.delete()
+        # Delete the sent messages in a loop
         delay_seconds=15
-        await asyncio.sleep(delay_seconds)
-        try:
-            await bot.delete_message(chat_id=chat_id, message_id=message_id)
-        except MessageToDeleteNotFound:
-            print("Message to delete not found.")
-        except Exception as e:
-            print(f"An error occurred while deleting message: {e}")
+        async def delete_message_after_delay(sent_messages, message_id, delay_seconds):
+            for sent_msg in sent_messages:
+                try:
+                    await sent_msg.delete()
+                except Exception as e:
+                    # Handle deletion errors, if any
+                    print(f"Error deleting message: {e}")
     else:
         reply_markup = InlineKeyboardMarkup(
             [
@@ -114,8 +117,9 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview = True,
             quote = True
         )
+        return
 
-
+    
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
@@ -140,7 +144,7 @@ async def not_joined(client: Client, message: Message):
             [
                 InlineKeyboardButton(
                     text = 'Try Again',
-                    url = f"https://t.me/{client.username}?start={message.command[1]}"
+                    url = f"https://telegram.me/{client.username}?start={message.command[1]}"
                 )
             ]
         )
