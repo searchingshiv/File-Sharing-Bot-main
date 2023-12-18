@@ -115,39 +115,43 @@ async def send_and_delete_messages(messages, message):
             print(f"Error deleting message: {e}")
 
 
-async def send_and_delete_document(msg, message, sent_messages):
+async def send_and_delete_document(msg, message):
+    if msg.empty:
+        return
+
     caption = get_caption(msg)
     reply_markup = get_reply_markup(msg)
 
     try:
         k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
                            reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-        await asyncio.sleep(0.5)
-        sent_messages.append(k)
+        await asyncio.sleep(15)
+        await k.delete()
     except FloodWait as e:
         await asyncio.sleep(e.x)
         k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
                            reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-        await asyncio.sleep(0.5)
-        sent_messages.append(k)
+        await asyncio.sleep(15)
+        await k.delete()
 
 
-async def send_and_delete_text(msg, message, sent_messages):
+async def send_and_delete_text(msg, message):
+    if msg.empty:
+        return
+
     reply_markup = get_reply_markup(msg)
 
     try:
         k = await msg.copy(chat_id=message.from_user.id, parse_mode=ParseMode.HTML,
                            reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-        await asyncio.sleep(0.5)
-        sent_messages.append(k)
+        await asyncio.sleep(15)
+        await k.delete()
     except FloodWait as e:
         await asyncio.sleep(e.x)
         k = await msg.copy(chat_id=message.from_user.id, parse_mode=ParseMode.HTML,
                            reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-        await asyncio.sleep(0.5)
-        sent_messages.append(k)
-
-# ... (your existing code)
+        await asyncio.sleep(15)
+        await k.delete()
 
 
 
