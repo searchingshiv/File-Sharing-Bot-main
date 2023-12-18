@@ -58,37 +58,14 @@ async def start_command(client: Client, message: Message):
             except:
                 return
         temp_msg = await message.reply("Please wait...")
+
         try:
             messages = await get_messages(client, ids)
         except:
             await message.reply_text("Something went wrong..!")
             return
-        await temp_msg.delete()
-        for msg in messages:
-            if bool(CUSTOM_CAPTION) and bool(msg.document):
-                caption = CUSTOM_CAPTION.format(
-                    previouscaption="" if not msg.caption else msg.caption.html,
-                    filename=msg.document.file_name)
-            else:
-                caption = "" if not msg.caption else msg.caption.html
 
-            if DISABLE_CHANNEL_BUTTON:
-                reply_markup = msg.reply_markup
-            else:
-                reply_markup = None
-
-            try:
-                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
-                                   reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                await asyncio.sleep(15)
-                await k.delete()
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
-                                   reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                await asyncio.sleep(15)
-                await k.delete()
-
+        # Send the introduction message
         reply_markup = InlineKeyboardMarkup(
             [
                 [
@@ -109,9 +86,64 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview=True,
             quote=True
         )
-        return
+
+        await temp_msg.delete()
+
+        # Send and delete each file after 15 seconds
+        for msg in messages:
+            if msg.document:
+                await send_and_delete_document(msg, message)
+            else:
+                await send_and_delete_text(msg, message)
+
+
+async def send_and_delete_document(msg, message):
+    caption = get_caption(msg)
+    reply_markup = get_reply_markup(msg)
+
+    try:
+        k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                           reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+        await asyncio.sleep(15)
+        await k.delete()
+    except FloodWait as e:
+        await asyncio.sleep(e.x)
+        k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                           reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+        await asyncio.sleep(15)
+        await k.delete()
+
+
+async def send_and_delete_text(msg, message):
+    reply_markup = get_reply_markup(msg)
+
+    try:
+        k = await msg.copy(chat_id=message.from_user.id, parse_mode=ParseMode.HTML,
+                           reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+        await asyncio.sleep(15)
+        await k.delete()
+    except FloodWait as e:
+        await asyncio.sleep(e.x)
+        k = await msg.copy(chat_id=message.from_user.id, parse_mode=ParseMode.HTML,
+                           reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+        await asyncio.sleep(15)
+        await k.delete()
+
+
+def get_caption(msg):
+    if bool(CUSTOM_CAPTION) and bool(msg.document):
+        return CUSTOM_CAPTION.format(
+            previouscaption="" if not msg.caption else msg.caption.html,
+            filename=msg.document.file_name)
+    else:
+        return "" if not msg.caption else msg.caption.html
+
+
+def get_reply_markup(msg):
+    return msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
 
 # ... (your existing code)
+
 
 
     
