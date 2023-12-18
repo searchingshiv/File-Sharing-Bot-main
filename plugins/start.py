@@ -99,6 +99,15 @@ async def start_command(client: Client, message: Message):
                 p=p+1
             except:
                 pass
+        await asyncio.sleep(15)
+        for p in range(p,0,-1):
+            try:
+
+                await k.delete()
+            except Exception as e:
+                print(f"An error occurred while handling forwarded video: {e}")
+            
+        return
         return
     else:
         reply_markup = InlineKeyboardMarkup(
@@ -121,14 +130,7 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview = True,
             quote = True
         )
-        for p in range(p,0,-1):
-                try:
-                    await asyncio.sleep(15)
-                    await k.delete()
-                except Exception as e:
-                    print(f"An error occurred while handling forwarded video: {e}")
-            
-        return
+
 async def handle_forwarded_video(client: Client, message: Message):
     try:
         # Process the forwarded video here
