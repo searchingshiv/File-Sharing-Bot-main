@@ -85,7 +85,9 @@ async def start_command(client: Client, message: Message):
 
         # Send and delete each file after 15 seconds
         await send_and_delete_messages(messages, message)
-
+        
+def get_reply_markup(msg):
+    return msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
 
 async def send_and_delete_messages(messages, message):
     if not messages:
