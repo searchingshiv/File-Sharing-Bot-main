@@ -17,13 +17,17 @@ from database.database import add_user, del_user, full_userbase, present_user
 
 @Bot.on_message(filters.private & filters.video & filters.forwarded)
 async def handle_forwarded_video(client: Client, message: Message):
-    print(f"Received forwarded video message with caption: {message.caption}")
     try:
+        # Process the forwarded video here
+
+        # Wait for 15 seconds
         await asyncio.sleep(15)
-        await message.delete()
-        print("Video message deleted successfully.")
+
+        # Delete the forwarded message after 15 seconds
+        await client.delete_messages(chat_id=message.chat.id, message_ids=message.message_id)
     except Exception as e:
-        print(f"Error deleting video message: {e}")
+        print(f"An error occurred while handling forwarded video: {e}")
+
 
 
 
