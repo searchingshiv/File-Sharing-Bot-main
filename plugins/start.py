@@ -63,44 +63,30 @@ async def start_command(client: Client, message: Message):
             await message.reply_text("Something went wrong..!")
             return
         await temp_msg.delete()
-    async def send_and_delete_messages(messages, message):
-        sent_messages = []  # List to store sent messages
-    
         for msg in messages:
+            if bool(CUSTOM_CAPTION) and bool(msg.document):
+                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
+            else:
+                caption = "" if not msg.caption else msg.caption.html
+    
+            if DISABLE_CHANNEL_BUTTON:
+                reply_markup = msg.reply_markup
+            else:
+                reply_markup = None
+    
             try:
-                # Check if the message contains a document
-                if msg.document:
-                    # Send each document individually
-                    for document in msg.media_group.documents:
-                        # Send the document
-                        k = await document.copy(chat_id=message.from_user.id, caption=msg.caption, parse_mode=ParseMode.HTML, reply_markup=msg.reply_markup, protect_content=PROTECT_CONTENT)
-                        
-                        # Sleep for a short time to avoid potential issues
-                        await asyncio.sleep(0.5)
-    
-                        # Add the sent message to the list
-                        sent_messages.append(k)
-                else:
-                    # If it's not a document, it might be text or other media, handle accordingly
-                    k = await msg.copy(chat_id=message.from_user.id, parse_mode=ParseMode.HTML, reply_markup=msg.reply_markup, protect_content=PROTECT_CONTENT)
-    
-                    # Sleep for a short time to avoid potential issues
-                    await asyncio.sleep(0.5)
-    
-                    # Add the sent message to the list
-                    sent_messages.append(k)
-    
-            except FloodWait as e:
-                # Handle FloodWait exception
-                await asyncio.sleep(e.x)
-                k = await msg.copy(chat_id=message.from_user.id, caption=msg.caption, parse_mode=ParseMode.HTML, reply_markup=msg.reply_markup, protect_content=PROTECT_CONTENT)
-                
-                # Add the sent message to the list
+                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                await asyncio.sleep(0.5)
                 sent_messages.append(k)
-    
-        # Sleep for 15 seconds before deleting
-        await asyncio.sleep(15)
-    
+            except FloodWait as e:
+                await asyncio.sleep(e.x)
+                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                sent_messages.append(k)
+                
+        warn_msg = await message.reply("<b> File will be deleted in 4 hours /n/n/n 🤖 Jo bhi file bot pe aaya hai, Sare file ko kahi pe Forward kar ke rkh lo Kyuki Bot se 4 Hours me File Automatic Delete ho jayega 😎 </b>")
+ # Sleep for 15 seconds before deleting
+        await asyncio.sleep(14400)
+        await warn_msg.delete()
         # Delete the sent messages in a loop
         for sent_msg in sent_messages:
             try:
@@ -108,6 +94,15 @@ async def start_command(client: Client, message: Message):
             except Exception as e:
                 # Handle deletion errors, if any
                 print(f"Error deleting message: {e}")
+    else:
+        reply_markup = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("😊 About Me", callback_data = "about"),
+                    InlineKeyboardButton("🔒 Close", callback_data = "close")
+                ]
+            ]
+        )
         await message.reply_text(
             text = START_MSG.format(
                 first = message.from_user.first_name,
