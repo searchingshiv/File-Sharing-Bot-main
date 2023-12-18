@@ -15,41 +15,23 @@ from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
-
-
-
-async def send_and_delete_text(msg, message, sent_messages):
-    sent_message = await message.reply_text(
-        text=msg,
-        quote=True,
-        disable_web_page_preview=True
-    )
-
-    if hasattr(message, "forward_from_message_id"):
-        sent_messages.append(message.forward_from_message_id)
-    else:
-        print(f"Warning: The message object does not have a forward_from_message_id attribute: {message}")
-
-
-    # Schedule the deletion after 15 seconds
+async def handle_forwarded_video(client: Client, message: Message):
+    # Handle forwarded videos here
+    # For example, you can print information about the video
+    print(f"Received forwarded video message with caption: {message.caption}")
+    
+    # Add a delay of 15 seconds before deleting the message
     await asyncio.sleep(15)
-
-    # Delete the sent messages
-    for msg_id in sent_messages:
-        try:
-            await message.chat.delete_messages(msg_id)
-        except:
-            pass
-
-    # Clear the list of sent messages
-    sent_messages.clear()
-
+    
+    try:
+        await message.delete()
+        print("Message deleted successfully.")
+    except Exception as e:
+        print(f"Error deleting message: {e}")
 
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
-    sent_messages = []  # Initialize the list here
-
     id = message.from_user.id
     if not await present_user(id):
         try:
@@ -57,7 +39,7 @@ async def start_command(client: Client, message: Message):
         except:
             pass
     text = message.text
-    if len(text) > 7:
+    if len(text)>7:
         try:
             base64_string = text.split(" ", 1)[1]
         except:
@@ -71,7 +53,7 @@ async def start_command(client: Client, message: Message):
             except:
                 return
             if start <= end:
-                ids = range(start, end + 1)
+                ids = range(start,end+1)
             else:
                 ids = []
                 i = start
@@ -94,10 +76,9 @@ async def start_command(client: Client, message: Message):
         await temp_msg.delete()
 
         for msg in messages:
+
             if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(
-                    previouscaption="" if not msg.caption else msg.caption.html,
-                    filename=msg.document.file_name)
+                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
@@ -107,46 +88,38 @@ async def start_command(client: Client, message: Message):
                 reply_markup = None
 
             try:
-                await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
-                                reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
                 await asyncio.sleep(0.5)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
-                                reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
             except:
                 pass
-
-        # Use the updated send_and_delete_text function
-        await send_and_delete_text(msg, message, sent_messages)
-
+        return
     else:
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("😊 About Me", callback_data="about"),
-                    InlineKeyboardButton("🔒 Close", callback_data="close")
+                    InlineKeyboardButton("😊 About Me", callback_data = "about"),
+                    InlineKeyboardButton("🔒 Close", callback_data = "close")
                 ]
             ]
         )
         await message.reply_text(
-            text=START_MSG.format(
-                first=message.from_user.first_name,
-                last=message.from_user.last_name,
-                username=None if not message.from_user.username else '@' + message.from_user.username,
-                mention=message.from_user.mention,
-                id=message.from_user.id
+            text = START_MSG.format(
+                first = message.from_user.first_name,
+                last = message.from_user.last_name,
+                username = None if not message.from_user.username else '@' + message.from_user.username,
+                mention = message.from_user.mention,
+                id = message.from_user.id
             ),
-            reply_markup=reply_markup,
-            disable_web_page_preview=True,
-            quote=True
+            reply_markup = reply_markup,
+            disable_web_page_preview = True,
+            quote = True
         )
+        return
 
-# Rest of your code...
-
-
-# Rest of your code...
-
+    
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
