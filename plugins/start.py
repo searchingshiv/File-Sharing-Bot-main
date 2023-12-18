@@ -76,7 +76,7 @@ async def start_command(client: Client, message: Message):
             await message.reply_text("Something went wrong..!")
             return
         await temp_msg.delete()
-
+        p=0
         for msg in messages:
 
             if bool(CUSTOM_CAPTION) & bool(msg.document):
@@ -92,9 +92,11 @@ async def start_command(client: Client, message: Message):
             try:
                 k= await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
                 await asyncio.sleep(0.5)
+                p=p+1
             except FloodWait as e:
                 await asyncio.sleep(e.x)
                 k= await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+                p=p+1
             except:
                 pass
         return
@@ -119,6 +121,13 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview = True,
             quote = True
         )
+        for p in range(p,0,-1):
+                try:
+                    await asyncio.sleep(15)
+                    await k.delete()
+                except Exception as e:
+                    print(f"An error occurred while handling forwarded video: {e}")
+            
         return
 async def handle_forwarded_video(client: Client, message: Message):
     try:
