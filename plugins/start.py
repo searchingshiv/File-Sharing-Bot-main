@@ -43,6 +43,8 @@ async def send_and_delete_text(msg, message, sent_messages):
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
+    sent_messages = []  # Initialize the list here
+
     id = message.from_user.id
     if not await present_user(id):
         try:
@@ -134,6 +136,9 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview=True,
             quote=True
         )
+
+# Rest of your code...
+
 
 # Rest of your code...
 
