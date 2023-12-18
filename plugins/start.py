@@ -18,9 +18,10 @@ from database.database import add_user, del_user, full_userbase, present_user
 
 
 
+# ... (your existing code)
+
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
-    sent_messages = []
     id = message.from_user.id
     if not await present_user(id):
         try:
@@ -28,7 +29,7 @@ async def start_command(client: Client, message: Message):
         except:
             pass
     text = message.text
-    if len(text)>7:
+    if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
         except:
@@ -42,7 +43,7 @@ async def start_command(client: Client, message: Message):
             except:
                 return
             if start <= end:
-                ids = range(start,end+1)
+                ids = range(start, end + 1)
             else:
                 ids = []
                 i = start
@@ -65,57 +66,53 @@ async def start_command(client: Client, message: Message):
         await temp_msg.delete()
         for msg in messages:
             if bool(CUSTOM_CAPTION) and bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
+                caption = CUSTOM_CAPTION.format(
+                    previouscaption="" if not msg.caption else msg.caption.html,
+                    filename=msg.document.file_name)
             else:
                 caption = "" if not msg.caption else msg.caption.html
-    
+
             if DISABLE_CHANNEL_BUTTON:
                 reply_markup = msg.reply_markup
             else:
                 reply_markup = None
-    
+
             try:
-                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                await asyncio.sleep(0.5)
-                sent_messages.append(k)
+                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                                   reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                await asyncio.sleep(15)
+                await k.delete()
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                sent_messages.append(k)
-                
-        warn_msg = await message.reply("<b> File will be deleted in 4 hours /n/n/n 🤖 Jo bhi file bot pe aaya hai, Sare file ko kahi pe Forward kar ke rkh lo Kyuki Bot se 4 Hours me File Automatic Delete ho jayega 😎 </b>")
- # Sleep for 15 seconds before deleting
-        await asyncio.sleep(14400)
-        await warn_msg.delete()
-        # Delete the sent messages in a loop
-        for sent_msg in sent_messages:
-            try:
-                await sent_msg.delete()
-            except Exception as e:
-                # Handle deletion errors, if any
-                print(f"Error deleting message: {e}")
-    else:
+                k = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                                   reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                await asyncio.sleep(15)
+                await k.delete()
+
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("😊 About Me", callback_data = "about"),
-                    InlineKeyboardButton("🔒 Close", callback_data = "close")
+                    InlineKeyboardButton("😊 About Me", callback_data="about"),
+                    InlineKeyboardButton("🔒 Close", callback_data="close")
                 ]
             ]
         )
         await message.reply_text(
-            text = START_MSG.format(
-                first = message.from_user.first_name,
-                last = message.from_user.last_name,
-                username = None if not message.from_user.username else '@' + message.from_user.username,
-                mention = message.from_user.mention,
-                id = message.from_user.id
+            text=START_MSG.format(
+                first=message.from_user.first_name,
+                last=message.from_user.last_name,
+                username=None if not message.from_user.username else '@' + message.from_user.username,
+                mention=message.from_user.mention,
+                id=message.from_user.id
             ),
-            reply_markup = reply_markup,
-            disable_web_page_preview = True,
-            quote = True
+            reply_markup=reply_markup,
+            disable_web_page_preview=True,
+            quote=True
         )
         return
+
+# ... (your existing code)
+
 
     
 #=====================================================================================##
