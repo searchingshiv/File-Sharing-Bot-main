@@ -107,6 +107,7 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview = True,
             quote = True
         )
+delay_seconds=15
 async def delete_message_after_delay(message_id, delay_seconds):
     await asyncio.sleep(delay_seconds)
     try:
