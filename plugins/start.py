@@ -15,19 +15,16 @@ from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
+@Bot.on_message(filters.private & filters.video & filters.forwarded)
 async def handle_forwarded_video(client: Client, message: Message):
-    # Handle forwarded videos here
-    # For example, you can print information about the video
     print(f"Received forwarded video message with caption: {message.caption}")
-    
-    # Add a delay of 15 seconds before deleting the message
-    await asyncio.sleep(15)
-    
     try:
+        await asyncio.sleep(15)
         await message.delete()
-        print("Message deleted successfully.")
+        print("Video message deleted successfully.")
     except Exception as e:
-        print(f"Error deleting message: {e}")
+        print(f"Error deleting video message: {e}")
+
 
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
