@@ -26,9 +26,9 @@ async def send_and_delete_text(msg, message, sent_messages):
     )
 
     if hasattr(message, "message_id"):
-    sent_messages.append(message.message_id)
+        sent_messages.append(message.message_id)
     else:
-    print(f"Warning: The message object does not have a message_id attribute: {message}")
+        print(f"Warning: The message object does not have a message_id attribute: {message}")
 
 
     # Schedule the deletion after 15 seconds
