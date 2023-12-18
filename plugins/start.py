@@ -15,18 +15,6 @@ from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
-@Bot.on_message(filters.private & filters.video & filters.forwarded)
-async def handle_forwarded_video(client: Client, message: Message):
-    try:
-        # Process the forwarded video here
-
-        # Wait for 15 seconds
-        await asyncio.sleep(15)
-
-        # Delete the forwarded message after 15 seconds
-        await message.delete()
-    except Exception as e:
-        print(f"An error occurred while handling forwarded video: {e}")
 
 
 
@@ -106,8 +94,6 @@ async def start_command(client: Client, message: Message):
                 await k.delete()
             except Exception as e:
                 print(f"An error occurred while handling forwarded video: {e}")
-            
-        return
         return
     else:
         reply_markup = InlineKeyboardMarkup(
@@ -130,18 +116,6 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview = True,
             quote = True
         )
-
-async def handle_forwarded_video(client: Client, message: Message):
-    try:
-        # Process the forwarded video here
-
-        # Wait for 15 seconds
-        await asyncio.sleep(15)
-
-        # Delete the forwarded message after 15 seconds
-        await k.delete()
-    except Exception as e:
-        print(f"An error occurred while handling forwarded video: {e}")
     
 #=====================================================================================##
 
