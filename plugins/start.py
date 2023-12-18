@@ -84,7 +84,7 @@ async def start_command(client: Client, message: Message):
                 sent_messages.append(k)
                 
         warn_msg = await message.reply("<b> File will be deleted in 4 hours \n \n \n 🤖 Jo bhi file bot pe aaya hai, Sare file ko kahi pe Forward kar ke rkh lo Kyuki Bot se 4 Hours me File Automatic Delete ho jayega 😎 </b>")
- # Sleep for 60 seconds before deleting
+ # Sleep for 14400 seconds before deleting
 
     else:
         reply_markup = InlineKeyboardMarkup(
@@ -108,7 +108,7 @@ async def start_command(client: Client, message: Message):
             quote = True
         )
         return
-    await asyncio.sleep(60)
+    await asyncio.sleep(14400)
     await warn_msg.delete()
     # Delete the sent messages in a loop
     for sent_msg in sent_messages:
