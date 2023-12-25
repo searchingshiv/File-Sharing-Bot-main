@@ -106,7 +106,8 @@ async def start_command(client: Client, message: Message):
             quote = True
         )
         return
- 
+
+    
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
@@ -131,7 +132,7 @@ async def not_joined(client: Client, message: Message):
             [
                 InlineKeyboardButton(
                     text = 'Try Again',
-                    url = f"https://telegram.me/{client.username}?start={message.command[1]}"
+                    url = f"https://t.me/{client.username}?start={message.command[1]}"
                 )
             ]
         )
