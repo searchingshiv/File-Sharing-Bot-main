@@ -1,7 +1,7 @@
 from pyrogram import Client
 from pyrogram.raw import functions
-import schedule
-import time
+# import schedule
+# import time
 from pymongo import MongoClient
 from config import API_HASH, APP_ID, LOGGER, TG_BOT_TOKEN, TG_BOT_WORKERS, FORCE_SUB_CHANNEL, CHANNEL_ID, PORT,DB_URI,DB_NAME
 
