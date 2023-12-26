@@ -58,7 +58,7 @@ if __name__ == "__main__":
             add_user_id_to_db(user_id)
 
         # Schedule deletion at 12:00 AM every day
-        schedule.every().day.at("21:30").do(delete_chats)
+        schedule.every().day.at("00:00").do(delete_chats)
 
         while True:
             schedule.run_pending()
